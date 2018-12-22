@@ -1,6 +1,6 @@
 # Execute assembly via Meterpreter session
 
-Custom Metasploit module to executing a .NET Assembly from Meterpreter session
+This is a custom Metasploit post module to executing a .NET Assembly from Meterpreter session
 
 This project target
 
@@ -14,10 +14,10 @@ You'll find details at [Execute assembly via Meterpreter session](https://b4rtik
 
 ## Install
 
-Create $HOME/.msf4/modules/post/windows/manage
-Copy execute-assembly.rb in $HOME/.msf4/modules/post/windows/manage/
-Create $HOME-METASPLOIT-DATADIR/execute-assembly
-Copy HostingCLRx64.dll in $HOME-METASPLOIT-DATADIR/execute-assembly/ 
+Create $HOME/.msf4/modules/post/windows/manage<br />
+Copy execute-assembly.rb in $HOME/.msf4/modules/post/windows/manage/<br />
+Create $HOME-METASPLOIT-DATADIR/execute-assembly<br />
+Copy HostingCLRx64.dll in $HOME-METASPLOIT-DATADIR/execute-assembly/<br /> 
 
 ## Note
 
