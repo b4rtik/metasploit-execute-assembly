@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+*.log
+*.tlog
+*.lastbiuldstate
+*.tlh
+*.pdb
+*.ipdb
+*.iobj
+*.exp
+.DS_Store
