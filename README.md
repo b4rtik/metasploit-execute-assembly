@@ -4,9 +4,9 @@ This is a custom Metasploit post module to executing a .NET Assembly from Meterp
 
 This project target
 
-Windows 10 64bit
-.Net 4.0
-Metasploit Framework 4
+Windows 10 64bit<br />
+.Net 4.0<br />
+Metasploit Framework 4<br />
 
 It spawn a notepad.exe process and use Reflective dll injection to load HostingCLRx64.dll needed to run .Net assembly
 
@@ -23,7 +23,7 @@ Copy HostingCLRx64.dll in $HOME-METASPLOIT-DATADIR/execute-assembly/<br />
 
 The signature of the Main method must match with the parameters that have been set in the module, for example:
 
-If the property ARGUMENTS is set to "antani sblinda destra" the main method should be "static void main (string [] args)"
+If the property ARGUMENTS is set to "antani sblinda destra" the main method should be "static void main (string [] args)"<br />
 If the property ARGUMENTS is set to "" the main method should be "static void main ()"
 
 ## Module options and execution
