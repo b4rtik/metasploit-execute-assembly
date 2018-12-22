@@ -36,7 +36,7 @@ class MetasploitModule < Msf::Post
     register_options(
       [
         OptString.new('ASSEMBLY', [true, 'Assembly file name']),
-        OptPath.new('ASSEMBLYPATH', [false, 'Assembly directory']),
+        OptString.new('ASSEMBLYPATH', [false, 'Assembly directory']),
         OptString.new('ARGUMENTS', [false, 'Command line arguments']),
         OptInt.new('WAIT', [false, 'Time in seconds to wait', 10])
       ], self.class
