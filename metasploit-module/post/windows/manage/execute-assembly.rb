@@ -30,7 +30,7 @@ class MetasploitModule < Msf::Post
                         ['Windows x64 (<= 10)', { 'Arch' => ARCH_X64 }]
                       ],
                       'References' => [
-                        ['URL', 'https://b4rtik.blogspot.com/2018/12/execute-assembly-via-meterpreter.html']
+                        ['URL', 'https://b4rtik.blogspot.com/2018/12/execute-assembly-via-meterpreter-session.html']
                       ],
                       'DefaultTarget' => 0))
     register_options(

@@ -10,7 +10,7 @@ Metasploit Framework 4<br />
 
 It spawn a notepad.exe process and use Reflective dll injection to load HostingCLRx64.dll needed to run .Net assembly
 
-You'll find details at [Execute assembly via Meterpreter session](https://b4rtik.blogspot.com/2018/12/execute-assembly-via-meterpreter.html)
+You'll find details at [Execute assembly via Meterpreter session](https://b4rtik.blogspot.com/2018/12/execute-assembly-via-meterpreter-session.html)
 
 ## Install
 
