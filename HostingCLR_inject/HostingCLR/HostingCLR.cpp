@@ -1,5 +1,5 @@
 // Author: B4rtik (@b4rtik)
-// Project: SharpGen (https://github.com/b4rtik/Execute-Assembly)
+// Project: Execute-dotnet-assembly (https://github.com/b4rtik/Execute-Assembly)
 // License: BSD 3-Clause
 // based on 
 // https://github.com/etormadiv/HostingCLR
