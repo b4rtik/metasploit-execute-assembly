@@ -40,9 +40,9 @@ class MetasploitModule < Msf::Post
                                      ::File.join(Msf::Config.data_directory, 
                                                  'execute-assembly')]),
         OptString.new('ARGUMENTS', [false, 'Command line arguments']),
-	OptString.new('PROCESS', [false, 'Process to spawn','notepad.exe']),
+		OptString.new('PROCESS', [false, 'Process to spawn','notepad.exe']),
         OptInt.new('PID', [false, 'Pid  to inject', 0]),
-	OptInt.new('WAIT', [false, 'Time in seconds to wait', 10])
+		OptInt.new('WAIT', [false, 'Time in seconds to wait', 10])
       ], self.class
     )
   end
