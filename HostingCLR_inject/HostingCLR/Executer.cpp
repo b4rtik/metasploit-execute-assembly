@@ -1,5 +1,5 @@
 // Author: B4rtik (@b4rtik)
-// Project: SharpGen (https://github.com/b4rtik/metasploit-execute-assembly)
+// Project: Execute-dotnet-assembly (https://github.com/b4rtik/metasploit-execute-assembly)
 // License: BSD 3-Clause
 
 #include "stdafx.h"
