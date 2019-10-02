@@ -1,5 +1,5 @@
 // Author: B4rtik (@b4rtik)
-// Project: SharpGen (https://github.com/b4rtik/Execute-Assembly)
+// Project: Execute Assembly (https://github.com/b4rtik/metasploit-execute-assembly)
 // License: BSD 3-Clause
 // based on 
 // https://github.com/etormadiv/HostingCLR
@@ -108,7 +108,7 @@ int executeSharp(LPVOID lpPayload)
 		return -1;
 	}
 
-	//Reading memory parameter + massembly
+	//Reading memory parameter + assembly
 	ReadProcessMemory(GetCurrentProcess(), lpPayload, allData, RAW_ASSEMBLY_LENGTH + RAW_AGRS_LENGTH, &readed);
 	
 	//Store parameters 
