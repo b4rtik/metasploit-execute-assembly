@@ -89,7 +89,7 @@ int executeSharp(LPVOID lpPayload)
 		return -1;
 	}
 
-	hr = pMetaHost->GetRuntime(L"v4.0.30319", IID_ICLRRuntimeInfo, (VOID**)&pRuntimeInfo);
+	hr = pMetaHost->GetRuntime(framework, IID_ICLRRuntimeInfo, (VOID**)&pRuntimeInfo);
 
 	if(FAILED(hr))
 	{
