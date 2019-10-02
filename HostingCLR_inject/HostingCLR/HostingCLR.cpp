@@ -15,6 +15,9 @@ unsigned char arg_s[RAW_AGRS_LENGTH];
 unsigned char allData[RAW_ASSEMBLY_LENGTH + RAW_AGRS_LENGTH];
 unsigned char rawData[RAW_ASSEMBLY_LENGTH];
 
+char sig_40[] = { 0x76,0x34,0x2E,0x30,0x2E,0x33,0x30,0x33,0x31,0x39 };
+char sig_20[] = { 0x76,0x32,0x2E,0x30,0x2E,0x35,0x30,0x37,0x32,0x37 };
+
 int executeSharp(LPVOID lpPayload)
 {
 	
@@ -35,7 +38,48 @@ int executeSharp(LPVOID lpPayload)
 	SAFEARRAY *psaStaticMethodArgs;
 	VARIANT vtPsa;
 
+	rgsabound[0].cElements = RAW_ASSEMBLY_LENGTH;
+	rgsabound[0].lLbound = 0;
+	SAFEARRAY* pSafeArray = SafeArrayCreate(VT_UI1, 1, rgsabound);
 
+	void* pvData = NULL;
+	hr = SafeArrayAccessData(pSafeArray, &pvData);
+
+	if (FAILED(hr))
+	{
+		printf("Failed SafeArrayAccessData w/hr 0x%08lx\n", hr);
+		return -1;
+	}
+
+	//Reading memory parameter + assembly
+	ReadProcessMemory(GetCurrentProcess(), lpPayload, allData, RAW_ASSEMBLY_LENGTH + RAW_AGRS_LENGTH, &readed);
+
+	//Store parameters 
+	memcpy(arg_s, allData, sizeof(arg_s));
+
+	//Taking pointer to assembly
+	unsigned char *offset = allData + RAW_AGRS_LENGTH;
+	//Store assembly
+	memcpy(pvData, offset, RAW_ASSEMBLY_LENGTH);
+
+	LPCWSTR framework;
+
+	if(FindVersion(pvData, sig_40))
+	{
+		framework = L"v4.0.30319";
+	}
+	else
+	{
+		framework = L"v2.0.50727";
+	}
+
+	hr = SafeArrayUnaccessData(pSafeArray);
+
+	if (FAILED(hr))
+	{
+		printf("Failed SafeArrayUnaccessData w/hr 0x%08lx\n", hr);
+		return -1;
+	}
 
 	hr = CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, (VOID**)&pMetaHost);
 
@@ -95,36 +139,7 @@ int executeSharp(LPVOID lpPayload)
 		return -1;
 	}
 
-	rgsabound[0].cElements = RAW_ASSEMBLY_LENGTH;
-	rgsabound[0].lLbound   = 0;
-	SAFEARRAY* pSafeArray  = SafeArrayCreate(VT_UI1, 1, rgsabound);
-
-	void* pvData = NULL;
-	hr = SafeArrayAccessData(pSafeArray, &pvData);
-
-	if(FAILED(hr))
-	{
-		printf("Failed SafeArrayAccessData w/hr 0x%08lx\n", hr);
-		return -1;
-	}
-
-	//Reading memory parameter + assembly
-	ReadProcessMemory(GetCurrentProcess(), lpPayload, allData, RAW_ASSEMBLY_LENGTH + RAW_AGRS_LENGTH, &readed);
 	
-	//Store parameters 
-	memcpy(arg_s, allData, sizeof(arg_s));
-
-	//Taking pointer to assembly
-	unsigned char *offset = allData + RAW_AGRS_LENGTH;
-	//Store parameters
-	memcpy(pvData, offset, RAW_ASSEMBLY_LENGTH);
-	hr = SafeArrayUnaccessData(pSafeArray);
-
-	if(FAILED(hr))
-	{
-		printf("Failed SafeArrayUnaccessData w/hr 0x%08lx\n", hr);
-		return -1;
-	}
 
 	hr = pDefaultAppDomain->Load_3(pSafeArray, &pAssembly);
 
@@ -215,6 +230,33 @@ VOID Execute(LPVOID lpPayload)
 
 	wprintf(L"Execution end\n");
 
+}
+
+BOOL FindVersion(void * assembly, char* a)
+{
+	char assembly_c[RAW_ASSEMBLY_LENGTH];
+
+	memcpy(assembly_c, &assembly, sizeof(assembly_c));
+
+	for (int i = 0; i < sizeof(assembly_c); i++)
+	{
+		for (int j = 0; j < sizeof(a); j++)
+		{
+			if (a[j] != assembly_c[i + j])
+			{
+				break;
+			}
+			else
+			{
+				if (j == (sizeof(a) - 1))
+				{
+					return TRUE;
+				}
+			}
+		}
+	}
+
+	return FALSE;
 }
 
 
