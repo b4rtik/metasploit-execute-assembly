@@ -62,7 +62,16 @@ int executeSharp(LPVOID lpPayload)
 	//Store assembly
 	memcpy(pvData, offset, RAW_ASSEMBLY_LENGTH);
 
-	LPCWSTR framework  = L"v4.0.30319";
+	LPCWSTR framework;
+
+	if(FindVersion(pvData, sig_40))
+	{
+		framework = L"v4.0.30319";
+	}
+	else
+	{
+		framework = L"v2.0.50727";
+	}
 
 	hr = SafeArrayUnaccessData(pSafeArray);
 
@@ -221,6 +230,35 @@ VOID Execute(LPVOID lpPayload)
 
 	wprintf(L"Execution end\n");
 
+}
+
+BOOL FindVersion(void * assembly, char* a)
+{
+	char assembly_c[RAW_ASSEMBLY_LENGTH];
+	char tofind[10];
+
+	memcpy(assembly_c, &assembly, RAW_ASSEMBLY_LENGTH);
+	memcpy(tofind, &a, 10);
+
+	for (int i = 0; i < RAW_ASSEMBLY_LENGTH; i++)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			if (tofind[j] != assembly_c[i + j])
+			{
+				break;
+			}
+			else
+			{
+				if (j == (10 - 1))
+				{
+					return TRUE;
+				}
+			}
+		}
+	}
+
+	return FALSE;
 }
 
 
