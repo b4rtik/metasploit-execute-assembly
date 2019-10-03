@@ -62,15 +62,15 @@ int executeSharp(LPVOID lpPayload)
 	//Store assembly
 	memcpy(pvData, offset, RAW_ASSEMBLY_LENGTH);
 
-	LPCWSTR framework;
+	LPCWSTR clrVersion;
 
 	if(FindVersion(pvData))
 	{
-		framework = L"v4.0.30319";
+		clrVersion = L"v4.0.30319";
 	}
 	else
 	{
-		framework = L"v2.0.50727";
+		clrVersion = L"v2.0.50727";
 	}
 
 	hr = SafeArrayUnaccessData(pSafeArray);
@@ -89,7 +89,7 @@ int executeSharp(LPVOID lpPayload)
 		return -1;
 	}
 
-	hr = pMetaHost->GetRuntime(framework, IID_ICLRRuntimeInfo, (VOID**)&pRuntimeInfo);
+	hr = pMetaHost->GetRuntime(clrVersion, IID_ICLRRuntimeInfo, (VOID**)&pRuntimeInfo);
 
 	if(FAILED(hr))
 	{
@@ -255,7 +255,7 @@ BOOL FindVersion(void * assembly)
 		}
 	}
 
-	return TRUE;
+	return FALSE;
 }
 
 
