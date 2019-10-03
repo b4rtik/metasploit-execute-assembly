@@ -139,8 +139,6 @@ int executeSharp(LPVOID lpPayload)
 		return -1;
 	}
 
-	
-
 	hr = pDefaultAppDomain->Load_3(pSafeArray, &pAssembly);
 
 	if(FAILED(hr))
