@@ -11,4 +11,4 @@
 using namespace mscorlib;
 
 VOID Execute(LPVOID lpPayload);
-BOOL FindVersion(void * assembly, char* a);
+BOOL FindVersion(void * assembly);
