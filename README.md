@@ -17,7 +17,7 @@ You'll find details at [Execute assembly via Meterpreter session](https://b4rtik
 Create $HOME/.msf4/modules/post/windows/manage<br />
 Copy execute-assembly.rb in $HOME/.msf4/modules/post/windows/manage/<br />
 Create $HOME-METASPLOIT-DATADIR/execute-assembly<br />
-Copy HostingCLRx64.dll in $HOME-METASPLOIT-DATADIR/execute-assembly/<br /> 
+Copy HostingCLRx64.dll in $HOME-METASPLOIT-DATADIR/post/execute-assembly/<br /> 
 
 ## Note
 
