@@ -111,7 +111,8 @@ class MetasploitModule < Msf::Post
     print_status("Reflectively injecting the Host DLL into #{process.pid}..")
 
     library_path = ::File.join(Msf::Config.data_directory,
-                               'execute-assembly', 'HostingCLRx64.dll')
+                               'post', 'execute-assembly',
+							   'HostingCLRx64.dll')
     library_path = ::File.expand_path(library_path)
 
     print_status("Injecting Host into #{process.pid}...")
