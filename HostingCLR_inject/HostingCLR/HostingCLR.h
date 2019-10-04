@@ -15,4 +15,4 @@ VOID Execute(LPVOID lpPayload);
 BOOL FindVersion(void * assembly);
 BOOL BypassAmsi();
 VOID PatchAmsi();
-BOOL CheckIfClrIsLoaded(LPCWSTR versione, IEnumUnknown* pEnumerator, LPVOID * pRuntimeInfo);
+BOOL ClrIsLoaded(LPCWSTR versione, IEnumUnknown* pEnumerator, LPVOID * pRuntimeInfo);

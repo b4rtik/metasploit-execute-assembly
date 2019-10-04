@@ -114,7 +114,7 @@ int executeSharp(LPVOID lpPayload)
 		return -1;
 	}
 	
-	BOOL isloaded = CheckIfClrIsLoaded(clrVersion, pEnumerator, (VOID**)&pRuntimeInfo);
+	BOOL isloaded = ClrIsLoaded(clrVersion, pEnumerator, (VOID**)&pRuntimeInfo);
 
 	if(!isloaded)
 	{
@@ -315,7 +315,7 @@ VOID PatchAmsi()
 	VirtualProtect(addr, patchsize, oldProtect, &oldProtect);
 }
 
-BOOL CheckIfClrIsLoaded(LPCWSTR versione, IEnumUnknown* pEnumerator, LPVOID * pRuntimeInfo) {
+BOOL ClrIsLoaded(LPCWSTR versione, IEnumUnknown* pEnumerator, LPVOID * pRuntimeInfo) {
 	ULONG fetched = 0;
 	DWORD bufferSize;
 	auto retval = FALSE;
