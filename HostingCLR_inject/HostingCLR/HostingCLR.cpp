@@ -315,18 +315,24 @@ VOID PatchAmsi()
 	VirtualProtect(addr, patchsize, oldProtect, &oldProtect);
 }
 
-BOOL ClrIsLoaded(LPCWSTR versione, IEnumUnknown* pEnumerator, LPVOID * pRuntimeInfo) {
+BOOL ClrIsLoaded(LPCWSTR version, IEnumUnknown* pEnumerator, LPVOID * pRuntimeInfo) {
+	HRESULT hr;
 	ULONG fetched = 0;
-	DWORD bufferSize;
-	auto retval = FALSE;
-	wchar_t buffer[MAX_PATH];
-	//ICLRRuntimeInfo
-	while (SUCCEEDED(pEnumerator->Next(1, (IUnknown **)&pRuntimeInfo, &fetched)) && fetched > 0) {
-		if ((SUCCEEDED(((ICLRRuntimeInfo*)pRuntimeInfo)->GetVersionString(buffer, &bufferSize))))
-			if (wcscmp(buffer, versione) == 0) {
+	DWORD vbSize;
+	BOOL retval = FALSE;
+	wchar_t currentversion[260];
+
+	while (SUCCEEDED(pEnumerator->Next(1, (IUnknown **)&pRuntimeInfo, &fetched)) && fetched > 0) 
+	{
+		hr = ((ICLRRuntimeInfo*)pRuntimeInfo)->GetVersionString(currentversion, &vbSize);
+		if (!FAILED(hr))
+		{
+			if (wcscmp(currentversion, version) == 0)
+			{
 				retval = TRUE;
 				break;
 			}
+		}
 	}
 
 	return retval;
