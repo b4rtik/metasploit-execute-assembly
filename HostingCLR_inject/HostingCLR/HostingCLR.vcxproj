@@ -114,7 +114,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;REFLECTIVEDLLINJECTION_CUSTOM_DLLMAIN;REFLECTIVEDLLINJECTION_VIA_LOADREMOTELIBRARYR;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_X32;WIN32;NDEBUG;REFLECTIVEDLLINJECTION_CUSTOM_DLLMAIN;REFLECTIVEDLLINJECTION_VIA_LOADREMOTELIBRARYR;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,7 +130,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;REFLECTIVEDLLINJECTION_VIA_LOADREMOTELIBRARYR;REFLECTIVEDLLINJECTION_CUSTOM_DLLMAIN;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_X64;WIN32;NDEBUG;REFLECTIVEDLLINJECTION_VIA_LOADREMOTELIBRARYR;REFLECTIVEDLLINJECTION_CUSTOM_DLLMAIN;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

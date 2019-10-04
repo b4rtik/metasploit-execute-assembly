@@ -12,3 +12,5 @@ using namespace mscorlib;
 
 VOID Execute(LPVOID lpPayload);
 BOOL FindVersion(void * assembly);
+BOOL BypassAmsi();
+VOID PatchAmsi();
