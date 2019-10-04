@@ -5,8 +5,8 @@ This is a custom Metasploit post module to executing a .NET Assembly from Meterp
 This project target
 
 Windows 10 64bit<br />
-.Net 4.0<br />
-Metasploit Framework 4<br />
+.Net 3.5/4.0<br />
+Metasploit Framework 5<br />
 
 It spawn a notepad.exe process and use Reflective dll injection to load HostingCLRx64.dll needed to run .Net assembly
 
@@ -35,9 +35,12 @@ Module options (post/windows/manage/execute-assembly):
 
    Name          Current Setting  Required  Description
    ----          ---------------  --------  -----------
+   AMSIBYPASS    true             yes       Enable Amsi bypass
    ARGUMENTS                      no        Command line arguments
    ASSEMBLY                       yes       Assembly file name
    ASSEMBLYPATH                   no        Assembly directory
+   PID           0                no        Pid  to inject
+   PROCESS       notepad.exe      no        Process to spawn
    SESSION                        yes       The session to run this module on.
    WAIT          10               no        Time in seconds to wait
 
