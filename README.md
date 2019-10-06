@@ -21,13 +21,6 @@ Copy execute-assembly.rb in $HOME/.msf4/modules/post/windows/manage/<br />
 Create $HOME-METASPLOIT-DATADIR/execute-assembly<br />
 Copy HostingCLRx64.dll in $HOME-METASPLOIT-DATADIR/post/execute-assembly/<br /> 
 
-## Note
-
-The signature of the Main method must match with the parameters that have been set in the module, for example:
-
-If the property ARGUMENTS is set to "antani sblinda destra" the main method should be "static void main (string [] args)"<br />
-If the property ARGUMENTS is set to "" the main method should be "static void main ()"
-
 ## Module options and execution
 
 ```
