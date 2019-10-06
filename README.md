@@ -5,7 +5,7 @@ This is a custom Metasploit post module to executing a .NET Assembly from Meterp
 This project target
 
 Windows 10 64bit<br />
-.Net 3.5/4.0<br />
+.Net 4.0<br />
 Metasploit Framework 5<br />
 
 It spawn a notepad.exe process and use Reflective dll injection to load HostingCLRx64.dll needed to run .Net assembly
