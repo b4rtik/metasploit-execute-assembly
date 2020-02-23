@@ -37,6 +37,14 @@ Module options (post/windows/manage/execute_assembly):
    SESSION                        yes       The session to run this module on.
    WAIT          10               no        Time in seconds to wait
 
+Module advanced options (post/windows/manage/execute_assembly):                            
+
+   Name       Current Setting  Required  Description
+   ----       ---------------  --------  -----------
+   KILL       false            yes       Kill the injected process at the end of the task
+   VERBOSE    false            no        Enable detailed status messages
+   WORKSPACE                   no        Specify the workspace for this module
+
 ```
 
 AMSIBYPASS
@@ -74,6 +82,9 @@ WAIT
 
 Time in seconds to wait before starting to read the output.
 
+KILL
+
+Kill the injected process at the end of the task
 
 ```
 msf post(windows/manage/execute-assembly) > exploit 
