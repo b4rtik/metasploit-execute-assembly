@@ -237,11 +237,12 @@ int executeSharp(LPVOID lpPayload)
 
 		LPWSTR *szArglist;
 		int nArgs;
-		wchar_t *wtext;
-		wtext = (wchar_t *)malloc((sizeof(wchar_t) * raw_args_length +1));
+		wchar_t *wtext = (wchar_t *)malloc((sizeof(wchar_t) * raw_args_length +1));
 
-		mbstowcs(wtext, (char *)arg_s, strlen((char *)arg_s) + 1);
+		mbstowcs(wtext, (char *)arg_s, raw_args_length + 1);
 		szArglist = CommandLineToArgvW(wtext, &nArgs);
+
+		free(wtext);
 
 		vtPsa.parray = SafeArrayCreateVector(VT_BSTR, 0, nArgs);
 
