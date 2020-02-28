@@ -33,6 +33,7 @@ Module options (post/windows/manage/execute_assembly):
    ASSEMBLY                       yes       Assembly file name
    ASSEMBLYPATH                   no        Assembly directory
    PID           0                no        Pid  to inject
+   PPID          0                no        Process Identifier for PPID spoofing when creating a new process. (0 = no PPID spoofing)
    PROCESS       notepad.exe      no        Process to spawn
    SESSION                        yes       The session to run this module on.
    WAIT          10               no        Time in seconds to wait
@@ -69,6 +70,10 @@ Assembly directory where to serach ASSEMBLY
 PID
 
 Pid to inject. If different from 0 the module does not create a new process but uses the existing process identified by the PID parameter.
+
+PPID
+
+Process Identifier for PPID spoofing when creating a new process. (0 = no PPID spoofing)
 
 PROCESS
 
