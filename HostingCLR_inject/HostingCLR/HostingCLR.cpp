@@ -67,11 +67,11 @@ int executeSharp(LPVOID lpPayload)
 	long raw_assembly_length = assemblysize.intvalue;
 	long raw_args_length = argssize.intvalue;
 
-	unsigned char *allData = (unsigned char*)malloc(raw_assembly_length * sizeof(unsigned char)+ raw_args_length * sizeof(unsigned char) + 8 * sizeof(unsigned char));
+	unsigned char *allData = (unsigned char*)malloc(raw_assembly_length * sizeof(unsigned char)+ raw_args_length * sizeof(unsigned char) + 9 * sizeof(unsigned char));
 	unsigned char *arg_s = (unsigned char*)malloc(raw_args_length * sizeof(unsigned char));
 	unsigned char *rawData = (unsigned char*)malloc(raw_assembly_length * sizeof(unsigned char));
 
-	SecureZeroMemory(allData, raw_assembly_length * sizeof(unsigned char) + raw_args_length * sizeof(unsigned char) + 8 * sizeof(unsigned char));
+	SecureZeroMemory(allData, raw_assembly_length * sizeof(unsigned char) + raw_args_length * sizeof(unsigned char) + 9 * sizeof(unsigned char));
 	SecureZeroMemory(arg_s, raw_args_length * sizeof(unsigned char));
 	SecureZeroMemory(rawData, raw_assembly_length * sizeof(unsigned char));
 
@@ -89,7 +89,7 @@ int executeSharp(LPVOID lpPayload)
 	}
 	
 	//Reading memory parameters + amsiflag + args + assembly
-	ReadProcessMemory(GetCurrentProcess(), lpPayload , allData, raw_assembly_length + raw_args_length + 8, &readed);
+	ReadProcessMemory(GetCurrentProcess(), lpPayload , allData, raw_assembly_length + raw_args_length + 9, &readed);
 
 	//Taking pointer to amsi
 	unsigned char *offsetamsi = allData + 8;
