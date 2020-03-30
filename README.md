@@ -26,17 +26,19 @@ Copy HostingCLRx64.dll in $HOME-METASPLOIT-DATADIR/post/execute-assembly/<br />
 ```
 Module options (post/windows/manage/execute_assembly):
 
-   Name          Current Setting  Required  Description
-   ----          ---------------  --------  -----------
-   AMSIBYPASS    true             yes       Enable Amsi bypass
-   ARGUMENTS                      no        Command line arguments
-   ASSEMBLY                       yes       Assembly file name
-   ASSEMBLYPATH                   no        Assembly directory
-   PID           0                no        Pid  to inject
-   PPID          0                no        Process Identifier for PPID spoofing when creating a new process. (0 = no PPID spoofing)
-   PROCESS       notepad.exe      no        Process to spawn
-   SESSION                        yes       The session to run this module on.
-   WAIT          10               no        Time in seconds to wait
+   Name           Current Setting  Required  Description
+   ----           ---------------  --------  -----------
+   AMSIBYPASS     true             yes       Enable Amsi bypass
+   ARGUMENTS                       no        Command line arguments
+   ASSEMBLY                        yes       Assembly file name
+   ASSEMBLYPATH                    no        Assembly directory
+   ETWBYPASS      true             yes       Enable Etw bypass
+   PID            0                no        Pid  to inject
+   PPID           0                no        Process Identifier for PPID spoofing when creating a new process. (0 = no PPID spoofing)
+   PROCESS        notepad.exe      no        Process to spawn
+   SESSION                         yes       The session to run this module on.
+   USETHREADTOKEN true             no        Spawn process with thread impersonation
+   WAIT           10               no        Time in seconds to wait
 
 Module advanced options (post/windows/manage/execute_assembly):                            
 
@@ -67,6 +69,10 @@ ASSEMBLYPATH
 
 Assembly directory where to serach ASSEMBLY
 
+ETWBYPASS
+
+Enable or Disable Etw bypass. This parameter is necessary due to the technique used. It is possible that subsequent updates will make the bypass unstable which could result in a crash. By setting the parameter to false the module continues to work.
+
 PID
 
 Pid to inject. If different from 0 the module does not create a new process but uses the existing process identified by the PID parameter.
@@ -82,6 +88,10 @@ Process to spawn when PID is equal to 0.
 SESSION
 
 The session to run this module on. Must be meterpreter session
+
+USETHREADTOKEN
+
+Spawn process with thread impersonation
 
 WAIT
 
