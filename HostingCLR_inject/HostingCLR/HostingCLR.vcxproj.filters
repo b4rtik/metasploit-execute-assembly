@@ -30,6 +30,9 @@
     <ClInclude Include="HostingCLR.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="EtwTamper.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HostingCLR.cpp">
@@ -44,5 +47,10 @@
     <ClCompile Include="ReflectiveLoader.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="Syscalls.asm">
+      <Filter>Sources</Filter>
+    </MASM>
   </ItemGroup>
 </Project>
