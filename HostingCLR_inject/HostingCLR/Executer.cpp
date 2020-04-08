@@ -20,6 +20,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved)
 	case DLL_PROCESS_ATTACH:
 		hAppInstance = hinstDLL;
 		Execute(lpReserved);
+		fflush(stdout);
 		break;
 	case DLL_PROCESS_DETACH:
 	case DLL_THREAD_ATTACH:
