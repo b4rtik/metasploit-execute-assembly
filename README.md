@@ -1,6 +1,6 @@
 # Execute assembly via Meterpreter session
 
-This is a custom Metasploit post module to executing a .NET Assembly from Meterpreter session
+This is a custom Metasploit post module to execute a .NET Assembly from Meterpreter session
 
 This project target
 
